@@ -19,6 +19,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { DatabaseService } from '../database/database.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { StatusService } from '../status/status.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
@@ -26,6 +27,7 @@ export class TaskController {
   constructor(
     private readonly taskService: TaskService,
     private readonly databaseService: DatabaseService,
+    private readonly statusService: StatusService,
   ) {}
 
   @Post()
@@ -33,7 +35,7 @@ export class TaskController {
     @Req() req,
     @Body() { title, description, subtasks, statusId }: CreateTaskDto,
   ) {
-    const isUserStatus = await this.taskService.isUserStatus(
+    const isUserStatus = await this.statusService.isUserStatus(
       statusId,
       req.user.id,
     );
@@ -63,7 +65,7 @@ export class TaskController {
     @Req() req,
     @Query('statusId', ParseIntPipe) statusId: number,
   ) {
-    const isUserStatus = await this.taskService.isUserStatus(
+    const isUserStatus = await this.statusService.isUserStatus(
       statusId,
       req.user.id,
     );
@@ -94,7 +96,7 @@ export class TaskController {
     @Param('id', ParseIntPipe) id: number,
     @Body() { title, description, statusId, subtasks }: UpdateTaskDto,
   ) {
-    const isUserStatus = await this.taskService.isUserStatus(
+    const isUserStatus = await this.statusService.isUserStatus(
       statusId,
       req.user.id,
     );
@@ -172,7 +174,7 @@ export class TaskController {
       throw new NotFoundException('Task not found');
     }
 
-    const isUserStatus = await this.taskService.isUserStatus(
+    const isUserStatus = await this.statusService.isUserStatus(
       taskToUpdate.statusId,
       req.user.id,
     );
@@ -203,7 +205,7 @@ export class TaskController {
       throw new NotFoundException('Task not found');
     }
 
-    const isUserStatus = await this.taskService.isUserStatus(
+    const isUserStatus = await this.statusService.isUserStatus(
       taskToRemove.statusId,
       req.user.id,
     );

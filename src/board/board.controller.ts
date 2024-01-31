@@ -69,7 +69,7 @@ export class BoardController {
       },
     );
 
-    if (!board || board.userId !== req.user.id) {
+    if (!board) {
       throw new NotFoundException('Board not found');
     }
 

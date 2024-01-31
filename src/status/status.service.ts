@@ -57,4 +57,15 @@ export class StatusService {
       where,
     });
   }
+
+  async isUserStatus(statusId: number, userId: number): Promise<boolean> {
+    return !!this.databaseService.status.findUnique({
+      where: {
+        id: statusId,
+        board: {
+          userId,
+        },
+      },
+    });
+  }
 }
