@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Subtask } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
+import { UpdateSubtaskDto } from './dto/update-subtask.dto';
 
 @Injectable()
 export class SubtaskService {
@@ -49,6 +50,61 @@ export class SubtaskService {
       data,
       where,
       include,
+    });
+  }
+
+  async updateMany(
+    taskId: number,
+    subtasks: UpdateSubtaskDto[],
+  ): Promise<Subtask[]> {
+    const existingSubtasks = await this.findMany({
+      where: {
+        taskId,
+      },
+    });
+
+    const subtasksID = subtasks.map(({ id }) => id);
+    const existingSubtasksID = new Set(existingSubtasks.map(({ id }) => id));
+
+    const subtasksIDToRemove = [...existingSubtasksID].filter(
+      (existingStatusID) => !subtasksID.includes(existingStatusID),
+    );
+
+    // remove statuses
+    await this.databaseService.subtask.deleteMany({
+      where: {
+        id: {
+          in: subtasksIDToRemove,
+        },
+      },
+    });
+
+    const subtasksToCreate: Prisma.SubtaskCreateManyInput[] = [];
+
+    for (const { id, title, isComplete } of subtasks) {
+      if (existingSubtasksID.has(id)) {
+        await this.update({
+          where: {
+            id: id,
+          },
+          data: {
+            title,
+            isComplete,
+          },
+        });
+      } else {
+        subtasksToCreate.push({ title, isComplete, taskId });
+      }
+    }
+
+    await this.databaseService.subtask.createMany({
+      data: subtasksToCreate,
+    });
+
+    return this.findMany({
+      where: {
+        taskId,
+      },
     });
   }
 

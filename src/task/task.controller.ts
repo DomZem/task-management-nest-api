@@ -16,18 +16,18 @@ import {
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { DatabaseService } from '../database/database.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { StatusService } from '../status/status.service';
 import { User } from '@prisma/client';
 import { GetUser } from '../common/decorator/get-user.decorator';
+import { SubtaskService } from '../subtask/subtask.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
 export class TaskController {
   constructor(
     private readonly taskService: TaskService,
-    private readonly databaseService: DatabaseService,
+    private readonly subtaskService: SubtaskService,
     private readonly statusService: StatusService,
   ) {}
 
@@ -114,24 +114,7 @@ export class TaskController {
       throw new NotFoundException('Task not found');
     }
 
-    await Promise.all([
-      subtasks.map(
-        async (subtask) =>
-          await this.databaseService.subtask.upsert({
-            where: {
-              id: subtask.id,
-            },
-            update: {
-              title: subtask.title,
-            },
-            create: {
-              taskId: taskToUpdate.id,
-              title: subtask.title,
-              isComplete: false,
-            },
-          }),
-      ),
-    ]);
+    await this.subtaskService.updateMany(id, subtasks);
 
     return this.taskService.update({
       where: {
@@ -150,13 +133,6 @@ export class TaskController {
         id: true,
         title: true,
         description: true,
-        subtasks: {
-          select: {
-            id: true,
-            title: true,
-            isComplete: true,
-          },
-        },
       },
     });
   }
