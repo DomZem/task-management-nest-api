@@ -1,5 +1,6 @@
-import { IsBoolean, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { IsNumber, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { UpdateSubtaskDto } from '../../subtask/dto/update-subtask.dto';
 
 export class UpdateTaskDto {
   @IsNumber()
@@ -17,15 +18,4 @@ export class UpdateTaskDto {
   @ValidateNested({ each: true })
   @Type(() => UpdateSubtaskDto)
   subtasks?: UpdateSubtaskDto[];
-}
-
-export class UpdateSubtaskDto {
-  @IsNumber()
-  id: number;
-
-  @IsString()
-  title: string;
-
-  @IsBoolean()
-  isComplete: boolean;
 }

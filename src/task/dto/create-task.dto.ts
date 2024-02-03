@@ -1,25 +1,14 @@
-import { IsBoolean, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { CreateSubtaskDto } from '../../subtask/dto/create-subtask.dto';
+import { UpdateTaskDto } from './update-task.dto';
+import { OmitType } from '@nestjs/mapped-types';
 
-export class CreateTaskDto {
-  @IsString()
-  title: string;
-
-  @IsString()
-  description: string;
-
-  @IsNumber()
-  statusId: number;
-
+export class CreateTaskDto extends OmitType(UpdateTaskDto, [
+  'id',
+  'subtasks',
+] as const) {
   @ValidateNested({ each: true })
   @Type(() => CreateSubtaskDto)
   subtasks?: CreateSubtaskDto[];
-}
-
-class CreateSubtaskDto {
-  @IsString()
-  title: string;
-
-  @IsBoolean()
-  isComplete: boolean;
 }

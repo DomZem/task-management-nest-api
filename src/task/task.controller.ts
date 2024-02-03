@@ -19,8 +19,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { DatabaseService } from '../database/database.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { StatusService } from '../status/status.service';
-import { User } from "@prisma/client";
-import { GetUser } from "../common/decorator/get-user.decorator";
+import { User } from '@prisma/client';
+import { GetUser } from '../common/decorator/get-user.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
