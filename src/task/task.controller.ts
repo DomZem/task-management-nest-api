@@ -11,7 +11,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
@@ -20,6 +19,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { DatabaseService } from '../database/database.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { StatusService } from '../status/status.service';
+import { User } from "@prisma/client";
+import { GetUser } from "../common/decorator/get-user.decorator";
 
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
@@ -32,12 +33,12 @@ export class TaskController {
 
   @Post()
   async create(
-    @Req() req,
+    @GetUser() user: User,
     @Body() { title, description, subtasks, statusId }: CreateTaskDto,
   ) {
     const isUserStatus = await this.statusService.isUserStatus(
       statusId,
-      req.user.id,
+      user.id,
     );
 
     if (!isUserStatus) {
@@ -62,12 +63,12 @@ export class TaskController {
 
   @Get()
   async findMany(
-    @Req() req,
+    @GetUser() user: User,
     @Query('statusId', ParseIntPipe) statusId: number,
   ) {
     const isUserStatus = await this.statusService.isUserStatus(
       statusId,
-      req.user.id,
+      user.id,
     );
 
     if (!isUserStatus) {
@@ -92,13 +93,13 @@ export class TaskController {
 
   @Put(':id')
   async updateTask(
-    @Req() req,
+    @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
     @Body() { title, description, statusId, subtasks }: UpdateTaskDto,
   ) {
     const isUserStatus = await this.statusService.isUserStatus(
       statusId,
-      req.user.id,
+      user.id,
     );
 
     if (!isUserStatus) {
@@ -162,7 +163,7 @@ export class TaskController {
 
   @Patch(':id')
   async updateTaskStatus(
-    @Req() req,
+    @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
     @Body() { statusId }: { statusId: number },
   ) {
@@ -176,7 +177,7 @@ export class TaskController {
 
     const isUserStatus = await this.statusService.isUserStatus(
       taskToUpdate.statusId,
-      req.user.id,
+      user.id,
     );
 
     if (!isUserStatus) {
@@ -198,7 +199,7 @@ export class TaskController {
   }
 
   @Delete(':id')
-  async delete(@Req() req, @Param('id', ParseIntPipe) id: number) {
+  async delete(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
     const taskToRemove = await this.taskService.findUnique({ id });
 
     if (!taskToRemove) {
@@ -207,7 +208,7 @@ export class TaskController {
 
     const isUserStatus = await this.statusService.isUserStatus(
       taskToRemove.statusId,
-      req.user.id,
+      user.id,
     );
 
     if (!isUserStatus) {

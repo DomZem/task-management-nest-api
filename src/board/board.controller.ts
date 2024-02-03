@@ -16,6 +16,8 @@ import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { StatusService } from '../status/status.service';
+import { GetUser } from '../common/decorator/get-user.decorator';
+import { User } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard)
 @Controller('boards')
@@ -26,7 +28,7 @@ export class BoardController {
   ) {}
 
   @Get()
-  findMany(@Req() req) {
+  findMany(@GetUser() user: User) {
     return this.boardService.findMany({
       select: {
         id: true,
@@ -36,13 +38,16 @@ export class BoardController {
         createdAt: 'asc',
       },
       where: {
-        userId: req.user.id,
+        userId: user.id,
       },
     });
   }
 
   @Post()
-  async create(@Req() req, @Body() { name, statuses }: CreateBoardDto) {
+  async create(
+    @GetUser() user: User,
+    @Body() { name, statuses }: CreateBoardDto,
+  ) {
     return this.boardService.create({
       name,
       statuses: {
@@ -52,7 +57,7 @@ export class BoardController {
       },
       user: {
         connect: {
-          id: req.user.id,
+          id: user.id,
         },
       },
     });
@@ -79,7 +84,7 @@ export class BoardController {
 
   @Put(':id')
   async update(
-    @Req() req,
+    @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
     @Body() { name, statuses }: UpdateBoardDto,
   ) {
@@ -87,7 +92,7 @@ export class BoardController {
       id,
     });
 
-    if (!boardToUpdate || boardToUpdate.userId !== req.user.id) {
+    if (!boardToUpdate || boardToUpdate.userId !== user.id) {
       throw new NotFoundException('Board not found');
     }
 
@@ -104,12 +109,12 @@ export class BoardController {
   }
 
   @Delete(':id')
-  async delete(@Req() req, @Param('id', ParseIntPipe) id: number) {
+  async delete(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
     const boardToRemove = await this.boardService.findUnique({
       id,
     });
 
-    if (!boardToRemove || boardToRemove.userId !== req.user.id) {
+    if (!boardToRemove || boardToRemove.userId !== user.id) {
       throw new NotFoundException('Board not found');
     }
 
