@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Status } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
+import { UpdateStatusDto } from './dto/update-status.dto';
+import { CreateStatusDto } from './dto/create-status.dto';
 
 @Injectable()
 export class StatusService {
@@ -49,6 +51,61 @@ export class StatusService {
       data,
       where,
       include,
+    });
+  }
+
+  async updateMany(
+    boardId: number,
+    statuses: UpdateStatusDto[],
+  ): Promise<Status[]> {
+    const existingStatuses = await this.findMany({
+      where: {
+        boardId,
+      },
+    });
+
+    const statusesID = statuses.map(({ id }) => id);
+    const existingStatusesID = new Set(existingStatuses.map(({ id }) => id));
+
+    const statusesIDToRemove = [...existingStatusesID].filter(
+      (existingStatusID) => !statusesID.includes(existingStatusID),
+    );
+
+    // remove statuses
+    await this.databaseService.status.deleteMany({
+      where: {
+        id: {
+          in: statusesIDToRemove,
+        },
+      },
+    });
+
+    const statusesToCreate: Prisma.StatusCreateManyInput[] = [];
+
+    for (const { id, name, color } of statuses) {
+      if (existingStatusesID.has(id)) {
+        await this.update({
+          where: {
+            id: id,
+          },
+          data: {
+            name,
+            color,
+          },
+        });
+      } else {
+        statusesToCreate.push({ name, color, boardId });
+      }
+    }
+
+    await this.databaseService.status.createMany({
+      data: statusesToCreate,
+    });
+
+    return this.findMany({
+      where: {
+        boardId,
+      },
     });
   }
 

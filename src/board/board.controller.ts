@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -14,15 +13,16 @@ import {
 } from '@nestjs/common';
 import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
-import { DatabaseService } from '../database/database.service';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { StatusService } from '../status/status.service';
+
 @UseGuards(JwtAuthGuard)
 @Controller('boards')
 export class BoardController {
   constructor(
     private readonly boardService: BoardService,
-    private readonly databaseService: DatabaseService,
+    private readonly statusService: StatusService,
   ) {}
 
   @Get()
@@ -91,49 +91,7 @@ export class BoardController {
       throw new NotFoundException('Board not found');
     }
 
-    const existingStatuses = await this.databaseService.status.findMany({
-      where: {
-        boardId: id,
-      },
-    });
-
-    const existingStatusesID = existingStatuses.map((e) => e.id);
-    const statusesID = statuses.map((s) => s.id);
-
-    const statusesIdToRemove = existingStatusesID.filter(
-      (s) => !statusesID.includes(s),
-    );
-
-    await Promise.all([
-      statusesIdToRemove.map(
-        async (statusId) =>
-          await this.databaseService.status.delete({
-            where: {
-              id: statusId,
-            },
-          }),
-      ),
-    ]);
-
-    await Promise.all([
-      statuses.map(
-        async ({ id, name, color }) =>
-          await this.databaseService.status.upsert({
-            where: {
-              id,
-            },
-            update: {
-              name,
-              color,
-            },
-            create: {
-              name,
-              color,
-              boardId: boardToUpdate.id,
-            },
-          }),
-      ),
-    ]);
+    await this.statusService.updateMany(id, statuses);
 
     return this.boardService.update({
       where: {
