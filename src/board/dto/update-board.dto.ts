@@ -1,5 +1,6 @@
 import { IsNumber, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { UpdateStatusDto } from '../../status/dto/update-status.dto';
 
 export class UpdateBoardDto {
   @IsNumber()
@@ -11,15 +12,4 @@ export class UpdateBoardDto {
   @ValidateNested({ each: true })
   @Type(() => UpdateStatusDto)
   statuses?: UpdateStatusDto[];
-}
-
-class UpdateStatusDto {
-  @IsNumber()
-  id: number;
-
-  @IsString()
-  name: string;
-
-  @IsString()
-  color: string;
 }
