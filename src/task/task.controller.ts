@@ -72,7 +72,7 @@ export class TaskController {
     );
 
     if (!isUserStatus) {
-      throw new ForbiddenException('You cannot read tasks');
+      throw new NotFoundException('Tasks not found');
     }
 
     return this.taskService.findMany({
@@ -102,15 +102,11 @@ export class TaskController {
       user.id,
     );
 
-    if (!isUserStatus) {
-      throw new ForbiddenException('You cannot update task');
-    }
-
     const taskToUpdate = await this.taskService.findUnique({
       id,
     });
 
-    if (!taskToUpdate) {
+    if (!taskToUpdate || !isUserStatus) {
       throw new NotFoundException('Task not found');
     }
 
@@ -142,17 +138,13 @@ export class TaskController {
       id,
     });
 
-    if (!taskToUpdate) {
-      throw new NotFoundException('Task not found');
-    }
-
     const isUserStatus = await this.statusService.isUserStatus(
       taskToUpdate.statusId,
       user.id,
     );
 
-    if (!isUserStatus) {
-      throw new ForbiddenException('You cannot update task');
+    if (!taskToUpdate || !isUserStatus) {
+      throw new NotFoundException('Task not found');
     }
 
     return this.taskService.update({
@@ -173,17 +165,13 @@ export class TaskController {
   async delete(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
     const taskToRemove = await this.taskService.findUnique({ id });
 
-    if (!taskToRemove) {
-      throw new NotFoundException('Task not found');
-    }
-
     const isUserStatus = await this.statusService.isUserStatus(
       taskToRemove.statusId,
       user.id,
     );
 
-    if (!isUserStatus) {
-      throw new ForbiddenException('You cannot delete task');
+    if (!taskToRemove || !isUserStatus) {
+      throw new NotFoundException('Task not found');
     }
 
     return this.taskService.delete(taskToRemove);
