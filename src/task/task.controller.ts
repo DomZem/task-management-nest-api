@@ -129,11 +129,6 @@ export class TaskController {
           },
         },
       },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-      },
     });
   }
 
