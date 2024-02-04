@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { DatabaseExceptionFilter } from './common/filter/database-exception.filter';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +12,7 @@ async function bootstrap() {
   const corsOrigin = configService.get<string>('CORS_ORIGIN');
   const port = configService.get<number>('PORT');
 
+  app.use(helmet());
   app.use(cookieParser());
   app.useGlobalFilters(new DatabaseExceptionFilter());
 
