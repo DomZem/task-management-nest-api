@@ -8,7 +8,6 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { BoardService } from './board.service';
@@ -48,26 +47,36 @@ export class BoardController {
     @GetUser() user: User,
     @Body() { name, statuses }: CreateBoardDto,
   ) {
-    return this.boardService.create({
-      name,
-      statuses: {
-        createMany: {
-          data: statuses,
+    return this.boardService.create(
+      {
+        name,
+        statuses: {
+          createMany: {
+            data: statuses,
+          },
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
         },
       },
-      user: {
-        connect: {
-          id: user.id,
-        },
+      {
+        id: true,
+        name: true,
       },
-    });
+    );
   }
 
   @Get(':id')
-  async findUnique(@Req() req, @Param('id', ParseIntPipe) id: number) {
+  async findUnique(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     const board = await this.boardService.findUnique(
       {
         id,
+        userId: user.id,
       },
       {
         id: true,
@@ -90,9 +99,10 @@ export class BoardController {
   ) {
     const boardToUpdate = await this.boardService.findUnique({
       id,
+      userId: user.id,
     });
 
-    if (!boardToUpdate || boardToUpdate.userId !== user.id) {
+    if (!boardToUpdate) {
       throw new NotFoundException('Board not found');
     }
 
@@ -105,6 +115,10 @@ export class BoardController {
       data: {
         name,
       },
+      select: {
+        id: true,
+        name: true,
+      },
     });
   }
 
@@ -112,9 +126,10 @@ export class BoardController {
   async delete(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
     const boardToRemove = await this.boardService.findUnique({
       id,
+      userId: user.id,
     });
 
-    if (!boardToRemove || boardToRemove.userId !== user.id) {
+    if (!boardToRemove) {
       throw new NotFoundException('Board not found');
     }
 

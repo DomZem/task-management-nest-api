@@ -5,7 +5,6 @@ import { OmitType } from '@nestjs/mapped-types';
 import { CreateStatusDto } from '../../status/dto/create-status.dto';
 
 export class CreateBoardDto extends OmitType(UpdateBoardDto, [
-  'id',
   'statuses',
 ] as const) {
   @ValidateNested({ each: true })

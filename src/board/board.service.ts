@@ -35,20 +35,23 @@ export class BoardService {
     });
   }
 
-  async create(data: Prisma.BoardCreateInput): Promise<Board> {
-    return this.databaseService.board.create({ data });
+  async create(
+    data: Prisma.BoardCreateInput,
+    select?: Prisma.BoardSelect,
+  ): Promise<Board> {
+    return this.databaseService.board.create({ data, select });
   }
 
   async update(params: {
     where: Prisma.BoardWhereUniqueInput;
     data: Prisma.BoardUpdateInput;
-    include?: Prisma.BoardInclude;
+    select?: Prisma.BoardSelect;
   }): Promise<Board> {
-    const { where, data, include } = params;
+    const { where, data, select } = params;
     return this.databaseService.board.update({
       data,
       where,
-      include,
+      select,
     });
   }
 
