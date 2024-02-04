@@ -7,15 +7,33 @@ import {
   ParseIntPipe,
   Patch,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { SubtaskService } from './subtask.service';
+import { TaskService } from '../task/task.service';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { User } from '@prisma/client';
+import { GetUser } from '../common/decorator/get-user.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Controller('subtasks')
 export class SubtaskController {
-  constructor(private readonly subtaskService: SubtaskService) {}
+  constructor(
+    private readonly subtaskService: SubtaskService,
+    private readonly taskService: TaskService,
+  ) {}
 
   @Get()
-  async findMany(@Query('taskId', ParseIntPipe) taskId: number) {
+  async findMany(
+    @GetUser() user: User,
+    @Query('taskId', ParseIntPipe) taskId: number,
+  ) {
+    const isUserTask = await this.taskService.isUserTask(taskId, user.id);
+
+    if (!isUserTask) {
+      throw new NotFoundException('Subtasks not found');
+    }
+
     return this.subtaskService.findMany({
       where: {
         taskId,
@@ -33,11 +51,19 @@ export class SubtaskController {
 
   @Patch(':id')
   async updateIsCompleted(
+    @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
     @Body() { isComplete }: { isComplete: boolean },
   ) {
-    const subtaskToUpdate = this.subtaskService.findUnique({
+    const subtaskToUpdate = await this.subtaskService.findUnique({
       id,
+      task: {
+        status: {
+          board: {
+            userId: user.id,
+          },
+        },
+      },
     });
 
     if (!subtaskToUpdate) {

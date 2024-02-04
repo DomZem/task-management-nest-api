@@ -57,4 +57,17 @@ export class TaskService {
       where,
     });
   }
+
+  async isUserTask(taskId: number, userId: number): Promise<boolean> {
+    return !!(await this.findUnique({
+      id: taskId,
+      status: {
+        board: {
+          user: {
+            id: userId,
+          },
+        },
+      },
+    }));
+  }
 }
