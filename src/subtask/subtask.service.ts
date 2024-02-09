@@ -43,13 +43,13 @@ export class SubtaskService {
   async update(params: {
     where: Prisma.SubtaskWhereUniqueInput;
     data: Prisma.SubtaskUpdateInput;
-    include?: Prisma.SubtaskInclude;
+    select?: Prisma.SubtaskSelect;
   }): Promise<Subtask> {
-    const { where, data, include } = params;
+    const { where, data, select } = params;
     return this.databaseService.subtask.update({
       data,
       where,
-      include,
+      select,
     });
   }
 

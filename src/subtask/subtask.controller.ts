@@ -77,6 +77,12 @@ export class SubtaskController {
       where: {
         id,
       },
+      select: {
+        id: true,
+        title: true,
+        isComplete: true,
+        taskId: true,
+      },
     });
   }
 }
