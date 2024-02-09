@@ -125,6 +125,12 @@ export class TaskController {
           },
         },
       },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        statusId: true,
+      },
     });
   }
 
@@ -157,6 +163,12 @@ export class TaskController {
       },
       where: {
         id,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        statusId: true,
       },
     });
   }

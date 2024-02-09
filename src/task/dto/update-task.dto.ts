@@ -3,9 +3,6 @@ import { Type } from 'class-transformer';
 import { UpdateSubtaskDto } from '../../subtask/dto/update-subtask.dto';
 
 export class UpdateTaskDto {
-  @IsNumber()
-  id: number;
-
   @IsString()
   title: string;
 
